@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title> Electricity Bill Calculator</title>
+<h1>Bill Calculator </h1>
+<label> Month </label>
+<input type = "text" name ="month" id = "month">
+
+<label> Power Consumption </label>
+<input type = "number" name ="consumption" id = "power_consumption">
+
+<label> Cost per kwh </label>
+<input type = "number" name ="cost" id = "cost_per_kwh">
+
+
+
+<table id = "results_table">
+   <tr>
+       <td>Month</td>
+       <td>Power Consumption</td>
+       <td> Cost per kwh</td>
+       <td>Result</td>
+   </tr>
+</table>
+
+<button type="button" onclick="myFunction()">Calculate</button>
+<script>
+   function myFunction() {
+       var results_table = document.getElementById("results_table");
+
+       var result_row = results_table.insertRow();
+
+       var month = result_row.insertCell(0);
+       var power_consumption = result_row.insertCell(1);
+       var cost_per_kwh = result_row.insertCell(2);
+       var result = result_row.insertCell(3);
+    
+     month.innerHTML = document.getElementById("month").value;
+     power_consumption.innerHTML = parseFloat(document.getElementById("power_consumption").value);
+     cost_per_kwh.innerHTML = parseFloat(document.getElementById("cost_per_kwh").value);
+     result.innerHTML = parseFloat(document.getElementById("cost_per_kwh").value) * parseFloat(document.getElementById("power_consumption").value);
+
+}
+</script>
+</html>
