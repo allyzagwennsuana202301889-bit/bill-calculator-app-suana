@@ -1,0 +1,160 @@
+*{
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  font-family: Comic Sans MS, Comic Sans, cursive;
+}
+
+body {
+  background-image: url('bg3.png');
+  background-repeat: no-repeat; 
+  background-size: cover; 
+  background-position: center center; 
+  background-attachment: fixed; 
+}
+
+.nav{
+ height: 90px;
+ width: 100%;
+ margin: 0;
+ padding: 0;
+ border:hidden;
+ background:#7FA1A6;
+ position: sticky;
+ display: flex;
+
+}
+
+.nav h1{
+transform: translate(-420px, 20px);
+display: flex;
+background:none;
+}
+
+
+.nav img{
+  display: flex;
+  transform: translate(-920px, 0px);
+  width: 122px;
+  height: 95px;
+}
+
+.udash img{
+  display: flex;
+  transform: translate(530px,0px);
+}
+
+
+
+.user label{
+ flex-direction: row;
+ transform: translate(130px, 80px);
+ 
+}
+
+
+.user input{
+  background-color: white;
+  border-radius: 8px;
+  height: 40px;
+  width: 300px;
+  display: flex;
+  transform: translate(-40px, 117px);
+  font-size: 20px;
+  font-family: Comic Sans MS, Comic Sans, cursive;
+
+}
+
+.user{
+  color: black;
+  text-decoration: none;
+  font-size: 22px;
+  display: flex;
+
+}
+
+.initiate{
+  color: black;
+  text-decoration: none;
+  font-size: 22px;
+  display: flex;
+}
+
+.initiate label{
+  transform: translate(-310px, 172px);
+}
+.initiate input{
+  background-color: white;
+  border-radius: 8px;
+  height: 40px;
+  width: 200px;
+  display: flex;
+  transform: translate(-300px, 166px);
+  font-size: 20px;
+  font-family: Comic Sans MS, Comic Sans, cursive;
+}
+.initiate button{
+  background-color: #1C81C9;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  padding: 14px 20px;
+  text-align: center;
+  text-decoration: none;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  transform: translate(-260px, 160px);
+}
+
+ .sec{
+  display:flex;
+  transform: translate(0px, 220px);
+ }
+.sec button{
+  background-color: #1C81C9;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  padding: 8px 10px;
+  text-align: center;
+  text-decoration: none;
+  display: flex;
+  font-size: 14px;
+  margin: 4px 2px;
+  cursor: pointer;
+  transform: translate(640px, 1px);
+}
+
+.sec label{
+  font-size: 30px;
+  font-weight: bold;
+}
+
+.operation{
+  flex-direction: row;
+  display: flex;
+ transform: translate(0px, 175px);
+}
+
+.operation table{
+  width: 90%;
+  margin-top: 20px;
+  border-collapse: collapse;
+  font-size: 20px;
+}
+
+.operation th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+    background: #FFFFFF;
+    }
+
+.operation th {
+  background: #FFFFFF;
+  font-weight: bold;
+    }

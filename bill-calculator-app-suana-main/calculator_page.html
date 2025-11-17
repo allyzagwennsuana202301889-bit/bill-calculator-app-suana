@@ -2,30 +2,59 @@
 <html>
 <head>
 <title> Electricity Bill Calculator</title>
-<h1>Bill Calculator </h1>
-<label> Month </label>
-<input type = "text" name ="month" id = "month">
+<link rel="stylesheet" href="cal_page.css">
 
-<label> Power Consumption </label>
-<input type = "number" name ="consumption" id = "power_consumption">
+<div class = nav>
+   <h1>Electricity Bill Calculator</h1>
+     <img src="callogo1.png" alt="logo">
+   <div class="udash">
+     <a href="profile_page.html"><img src="clean logo1.png" alt="pfp"></a>
+   </div>
+</div>
 
-<label> Cost per kwh </label>
-<input type = "number" name ="cost" id = "cost_per_kwh">
 
+<div class = user>
+   <label> Month </label>
+      <input type = "text" name ="month" id = "month">
+   <label> Power Consumption(kwh) </label>
+      <input type = "number" name ="consumption" id = "power_consumption">
+   <label> Cost per kwh </label>
+      <input type = "number" name ="cost" id = "cost_per_kwh">
+</div>
 
+<div class = initiate>
+<label>Total Bills: </label>
+       <input type="text" id="total" readonly>
+<button type="button" onclick="myFunction()">Calculate</button>
+</div>
 
+<br></br>
+
+<div class = sec>
+   <label> Bill History</label>
+   <button type="button">Clear Table</button>
+</div>
+
+<br></br>
+
+<div class="operation">
 <table id = "results_table">
    <tr>
-       <td>Month</td>
-       <td>Power Consumption</td>
-       <td> Cost per kwh</td>
-       <td>Result</td>
+       <th>Month</th>
+       <th>Power Consumption</th>
+       <th> Cost per kwh</th>
+       <th>Result</th>
    </tr>
 </table>
+</div>
 
-<button type="button" onclick="myFunction()">Calculate</button>
 <script>
    function myFunction() {
+    let consumption = parseFloat(document.getElementById("power_consumption").value);
+    let cost = parseFloat(document.getElementById("cost_per_kwh").value);
+    let total = consumption * cost;
+    document.getElementById("total").value = total.toFixed(2);
+
        var results_table = document.getElementById("results_table");
 
        var result_row = results_table.insertRow();
@@ -42,4 +71,6 @@
 
 }
 </script>
+
+
 </html>
