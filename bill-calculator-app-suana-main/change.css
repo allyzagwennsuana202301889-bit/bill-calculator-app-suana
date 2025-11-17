@@ -60,7 +60,7 @@ button{
   height: 50px;
   width: 200px;
   display: flex;
-  transform: translate(750px, 150px);
+  transform: translate(750px, 60px);
   font-size: 20px;
   font-family: Comic Sans MS, Comic Sans, cursive;
   color: white;
@@ -71,4 +71,11 @@ button{
 
 .noline{
   text-decoration: none;
+}
+
+.backup img{
+  width: 80px;
+  height: 80px;
+  display: flex;
+  transform: translate(30px,-350px);
 }

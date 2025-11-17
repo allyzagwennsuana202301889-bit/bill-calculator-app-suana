@@ -73,4 +73,10 @@ button{
   text-decoration: none;
 }
 
+.rwd img{
+  width: 80px;
+  height: 80px;
+  display: flex;
+  transform: translate(30px,-400px);
+}
 
