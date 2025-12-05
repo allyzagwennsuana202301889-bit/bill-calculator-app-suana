@@ -9,20 +9,73 @@
      <img src="callogo1.png" alt="logo">
 </div>
 
-<div class = "input1">
-<label></label>
-<input type = "text" placeholder="Email: " id = "mail">
+<div class="input1">
+    <input type="email" placeholder="Email:" id="mail">
 </div>
 
 <div class="input2">
-<label></label>
-<input type = "text" placeholder="Password: "  id = "pass">
+    <input type="password" placeholder="New Password:" id="pass">
 </div>
+
+<button type="submit" onclick="changePassword()">Change Pass</button>
+
 
 <div class = "backup">
 <a href ="profile_page.html"><img src="back2.png"></a>
 </div>
 
-<a href = "calculator_page.html" class = "noline"> <button type="submit">Change Pass</button></a>
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="auth.js"></script>
+
+<script>
+async function changePassword() {
+    const emailInput = document.getElementById("mail").value.trim();
+    const newPassword = document.getElementById("pass").value.trim();
+
+    // Check empty values
+    if (!emailInput || !newPassword) {
+        alert("Please enter your email and new password.");
+        return;
+    }
+
+    // Password length restriction
+    if (newPassword.length < 6) {
+        alert("Password must be at least 6 characters.");
+        return;
+    }
+
+    // Get logged-in user
+    const user = await getCurrentUser();
+    if (!user) {
+        alert("You must be logged in to change your password.");
+        return;
+    }
+
+    // Verify correct email
+    if (emailInput !== user.email) {
+        alert("Email does not match your account.");
+        return;
+    }
+
+    // Update password
+    const { error } = await supabaseClient.auth.updateUser({
+        password: newPassword
+    });
+
+    if (error) {
+        alert("Error changing password: " + error.message);
+        return;
+    }
+
+    alert("Password changed successfully! Please log in again.");
+
+    // Log out after password change
+    await supabaseClient.auth.signOut();
+    window.location.href = "login.html";
+}
+</script>
+
 
 </html>

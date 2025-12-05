@@ -48,7 +48,6 @@ background:none;
 }
 
 
-
 .user label{
  flex-direction: row;
  transform: translate(130px, 80px);
@@ -135,12 +134,14 @@ background:none;
  transform: translate(0px, 175px);
 }
 
+
 .operation table{
   width: 90%;
   margin-top: 20px;
   border-collapse: collapse;
   font-size: 20px;
 }
+
 
 .operation th, td {
     border: 1px solid #ddd;
@@ -153,3 +154,49 @@ background:none;
   background: #FFFFFF;
   font-weight: bold;
     }
+
+
+.table-row {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Slide wrapper */
+.row-content {
+    display: inline-block;
+    transition: transform 0.3s ease;
+    white-space: nowrap;
+}
+
+/* Delete button overlay inside first cell */
+.delete-btn {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 80px;
+    background: red;
+    color: white;
+    border: none;
+    cursor: pointer;
+
+    transform: translateX(100%);  /* initially hidden */
+    pointer-events: none;         /* not clickable when hidden */
+    transition: transform 0.3s ease;
+}
+
+/* Slide row content on click */
+.table-row.active .row-content {
+    transform: translateX(-80px); /* slide left to reveal delete button */
+}
+
+/* Show delete button */
+.table-row.active .delete-btn {
+    transform: translateX(0);
+    pointer-events: auto;
+}
+
+/* Optional: add some spacing/padding for table cells */
+#results_table td {
+    padding: 12px 16px;
+}

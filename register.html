@@ -1,55 +1,121 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title> Electricity Bill Calculator</title>
-<link rel="stylesheet" href="signingin.css">
+    <title>Electricity Bill Calculator - Sign Up</title>
+    <link rel="stylesheet" href="signingin.css">
+</head>
 
-<div class = nav>
-   <h1>Signing In</h1>
-     <img src="callogo1.png" alt="logo">
-   </div>
+<body>
+
+<!-- NAV BAR -->
+<div class="nav">
+    <h1>Signing In</h1>
+    <img src="callogo1.png" alt="logo">
 </div>
 
-<div class = "user_info">
+<!-- SIGN UP FORM -->
+<div class="user_info">
 
-    <div class = username>
-        <label> </label>
-        <input type = "text" placeholder="name" id = "nm">
+    <div class="username">
+        <input type="text" placeholder="name" id="reg_name">
     </div>
 
-    <div class = useradd> 
-        <label> </label>
-        <input type = "text" placeholder="address" id = "add">
+    <div class="useradd"> 
+        <input type="text" placeholder="address" id="reg_address">
     </div>
 
-    <div class ="usernum">
-        <label></label>
-        <input type = "text" placeholder="phone" id = "pnum">
+    <div class="usernum">
+        <input type="text" placeholder="phone" id="reg_phone">
     </div>
 
-    <div class = "usermail">
-        <label></label>
-        <input type = "text" placeholder="email" id = "em">
+    <div class="usermail">
+        <input type="text" placeholder="email" id="reg_email">
     </div>
 
-    <div class = "userpass">
-        <label></label>
-        <input type = "text" placeholder="password" id = "pass">
+    <div class="userpass">
+        <input type="password" placeholder="password" id="reg_password">
     </div>
 
-    <div class ="userconfirm">
-        <label></label>
-        <input type = "text" placeholder="confirm" id = "confirm">
+    <div class="userconfirm">
+        <input type="password" placeholder="confirm password" id="reg_confirm_password">
     </div>
 
 </div>
 
-<div class = sign>
-<a href = "calculator_page.html" class = "noline"><button type = "submit">Sign Up </button></a>
+<!-- SIGN UP BUTTON -->
+<div class="sign">
+    <button type="button" onclick="handleRegister()">Sign Up</button>
 </div>
 
-<div class = bck>
-<a href = "index.html"><img src="back2.png"></a>
+<!-- BACK BUTTON -->
+<div class="bck">
+    <a href="index.html"><img src="back2.png"></a>
 </div>
 
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="auth.js"></script>
+
+<script>
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        await redirectIfAuthenticated();
+    });
+
+    async function handleRegister() {
+        const name = document.getElementById("reg_name").value;
+        const email = document.getElementById("reg_email").value;
+        const password = document.getElementById("reg_password").value;
+        const confirmPassword = document.getElementById("reg_confirm_password").value;
+
+        if (!name || !email || !password || !confirmPassword) {
+            alert("Please fill in all fields!");
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            alert("Passwords do not match!");
+            return;
+        }
+
+        if (password.length < 6) {
+            alert("Password must be at least 6 characters long!");
+            return;
+        }
+
+        try {
+            const { data, error } = await supabaseClient.auth.signUp({
+                email: email,
+                password: password,
+                options: {
+                    data: {
+                        full_name: name
+                    }
+                }
+            });
+
+            if (error) {
+                alert("Registration failed: " + error.message);
+                return;
+            }
+
+            alert("Registration successful! Check your email to verify your account.");
+            window.location.href = "login.html";
+
+        } catch (err) {
+            alert("An error occurred: " + err.message);
+        }
+    }
+
+    async function redirectIfAuthenticated() {
+        const session = await checkAuth();
+        if (session) {
+            window.location.href = "calculator_page.html";
+        }
+    }
+
+</script>
+
+</body>
 </html>

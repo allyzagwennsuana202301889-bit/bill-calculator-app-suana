@@ -1,51 +1,153 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title> Electricity Bill Calculator</title>
-<link rel="stylesheet" href="pfp.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Electricity Bill Calculator - Profile</title>
+    <link rel="stylesheet" href="pfp.css" />
+</head>
 
-<div class = nav>
-	<div class = pfpname>
-     <label> </label>
-     <input type = "text" placeholder="Ethan Xanthieurs" id = "ppp">
+<body>
+    <!-- Navigation -->
+    <div class="nav">
+        <div class="pfpname">
+            <!-- Editable Username Field -->
+            <input type="text" id="profile_name" placeholder="Username" />
+        </div>
+        <div class="udash">
+            <img src="clean logo1.png" alt="pfp" />
+        </div>
     </div>
 
-   <div class="udash">
-     <img src="clean logo1.png" alt="pfp">
-   </div>
-</div>
+    <!-- Profile Info Labels -->
+    <div class="box">
+        <div class="info">
+            <label class="uname">Username</label>
+            <label class="uadd">Address</label>
+            <label class="num">Phone No.</label>
+            <label class="mails">Email</label>
 
-<div class = "box">
-<div class = "info">
-	<label class = uadd>Address</label>
-	<label class = num>Phone no.</label>
-	<label class = mails>Email </label>
+            <div class="passout">
+                <a href="changepass.html" class="changie">Change Password</a>
+                <button class="outie" onclick="handleLogout()">Log out</button>
+            </div>
+        </div>
+    </div>
 
-<div class = passout>
-	<a href="changepass.html" class = changie>Change Password</a>
-	<a href="index.html" class = "outie">Log out</a>
-</div>
-</div>
-</div>
+    <!-- Editable Fields -->
+    <div class="example">
+        <!-- Editable Username -->
+        <div class="fillname">
+            <input type="text" id="profile_name_edit" placeholder="Username" />
+        </div>
 
-<div class="example">
-<div class= "fills">
-	<label> </label>
-     <input type = "text" placeholder="nonyastreet" id = "strt">
-</div>
+        <!-- Address -->
+        <div class="fills">
+            <input type="text" id="profile_address" placeholder="Address" />
+        </div>
 
-<div class= "fill">
-	<label> </label>
-     <input type = "text" placeholder="09248274" id = "nmm">
-</div>
+        <!-- Phone -->
+        <div class="fill">
+            <input type="text" id="profile_phone" placeholder="Phone Number" />
+        </div>
 
-<div class = "fill2">
-		<label> </label>
-     <input type = "text" placeholder="TSky@gmail.com" id = "mmm">
-</div>
-</div>
+        <!-- Email -->
+        <div class="fill2">
+            <input type="email" id="profile_email_edit" placeholder="Email" />
+        </div>
+    </div>
 
-<div class = rewind>
-	<a href="calculator_page.html"><img src="back2.png"></a>
-</div>
+    <button class="savebtn" onclick="handleProfileUpdate()">Save Changes</button>
+
+    <!-- Back Button -->
+    <div class="rewind">
+        <a href="calculator_page.html"><img src="back2.png" alt="back" /></a>
+    </div>
+
+    <!-- Supabase Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="auth.js"></script>
+
+    <script>
+        // Load user profile on page load
+        document.addEventListener("DOMContentLoaded", async () => {
+            const session = await initAuth();
+            if (session) {
+                await loadUserProfile();
+            }
+        });
+
+        async function loadUserProfile() {
+            const user = await getCurrentUser();
+            if (user) {
+                // Username
+                if (user.user_metadata?.username) {
+                    document.getElementById("profile_name").value = user.user_metadata.username;
+                    document.getElementById("profile_name_edit").value = user.user_metadata.username;
+                }
+
+                // Address
+                if (user.user_metadata?.address) {
+                    document.getElementById("profile_address").value = user.user_metadata.address;
+                }
+
+                // Phone
+                if (user.user_metadata?.phone) {
+                    document.getElementById("profile_phone").value = user.user_metadata.phone;
+                }
+
+                // Email
+                if (user.email) {
+                    document.getElementById("profile_email_edit").value = user.email;
+                }
+            }
+        }
+
+        async function handleProfileUpdate() {
+            const username = document.getElementById("profile_name_edit").value;
+            const phone = document.getElementById("profile_phone").value;
+            const address = document.getElementById("profile_address").value;
+            const email = document.getElementById("profile_email_edit").value;
+
+            const user = await getCurrentUser();
+            if (!user) {
+                alert("You must be logged in to update your profile!");
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient.auth.updateUser({
+                    email: email, // update email
+                    data: {
+                        username: username,
+                        phone: phone,
+                        address: address,
+                    },
+                });
+
+                if (error) {
+                    alert("Error updating profile: " + error.message);
+                    return;
+                }
+
+                // Update nav username instantly
+                document.getElementById("profile_name").value = username;
+
+                alert("Profile updated successfully!");
+            } catch (error) {
+                alert("Error updating profile: " + error.message);
+            }
+        }
+
+        async function handleLogout() {
+            const success = await signOut();
+            if (success) {
+                window.location.href = "login.html";
+            } else {
+                alert("Error logging out. Please try again.");
+            }
+        }
+    </script>
+</body>
 </html>

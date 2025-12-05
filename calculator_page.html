@@ -1,76 +1,198 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title> Electricity Bill Calculator</title>
-<link rel="stylesheet" href="cal_page.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Electricity Bill Calculator</title>
+<link rel="stylesheet" href="cal_page.css" />
 
-<div class = nav>
-   <h1>Electricity Bill Calculator</h1>
-     <img src="callogo1.png" alt="logo">
-   <div class="udash">
-     <a href="profile_page.html"><img src="clean logo1.png" alt="pfp"></a>
-   </div>
+</head>
+
+<body>
+<div class="nav">
+    <h1>Electricity Bill Calculator</h1>
+    <img src="callogo1.png" alt="logo" />
+    <div class="udash">
+        <a href="profile_page.html"><img src="clean logo1.png" alt="pfp" /></a>
+    </div>
 </div>
 
-
-<div class = user>
-   <label> Month </label>
-      <input type = "text" name ="month" id = "month">
-   <label> Power Consumption(kwh) </label>
-      <input type = "number" name ="consumption" id = "power_consumption">
-   <label> Cost per kwh </label>
-      <input type = "number" name ="cost" id = "cost_per_kwh">
+<div class="user">
+    <label>Month</label>
+    <input type="text" id="month" />
+    <label>Power Consumption (kWh)</label>
+    <input type="number" id="power_consumption" />
+    <label>Cost per kWh</label>
+    <input type="number" id="cost_per_kwh" />
 </div>
 
-<div class = initiate>
-<label>Total Bills: </label>
-       <input type="text" id="total" readonly>
-<button type="button" onclick="myFunction()">Calculate</button>
+<div class="initiate">
+    <label>Total Bills:</label>
+    <input type="text" id="total" readonly />
+    <button type="button" id="btn_calculate">Calculate</button>
 </div>
 
-<br></br>
+<br />
 
-<div class = sec>
-   <label> Bill History</label>
-   <button type="reset">Clear Table</button>
+<div class="sec">
+    <label>Bill History</label>
+    <button type="button" id="clear_table">Clear Table</button>
 </div>
 
-<br></br>
+<br />
 
 <div class="operation">
-<table id = "results_table">
-   <tr>
-       <th>Month</th>
-       <th>Power Consumption</th>
-       <th> Cost per kwh</th>
-       <th>Result</th>
-   </tr>
-</table>
+    <table id="results_table">
+        <tr>
+            <th>Month</th>
+            <th>Power Consumption</th>
+            <th>Cost per kWh</th>
+            <th>Result</th>
+        </tr>
+    </table>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="auth.js"></script>
+
 <script>
-   function myFunction() {
-    let consumption = parseFloat(document.getElementById("power_consumption").value);
-    let cost = parseFloat(document.getElementById("cost_per_kwh").value);
-    let total = consumption * cost;
-    document.getElementById("total").value = total.toFixed(2);
+document.addEventListener("DOMContentLoaded", async () => {
+    await initAuth();
+    await loadHistory();
 
-       var results_table = document.getElementById("results_table");
+    const btn_calculate = document.getElementById("btn_calculate");
+    btn_calculate.addEventListener("click", async () => {
+        const month = document.getElementById("month");
+        const power = document.getElementById("power_consumption");
+        const cost = document.getElementById("cost_per_kwh");
+        const total = document.getElementById("total");
 
-       var result_row = results_table.insertRow();
+        if (!month.value || !power.value || !cost.value) {
+            alert("Please fill in all fields!");
+            return;
+        }
 
-       var month = result_row.insertCell(0);
-       var power_consumption = result_row.insertCell(1);
-       var cost_per_kwh = result_row.insertCell(2);
-       var result = result_row.insertCell(3);
-    
-     month.innerHTML = document.getElementById("month").value;
-     power_consumption.innerHTML = parseFloat(document.getElementById("power_consumption").value);
-     cost_per_kwh.innerHTML = parseFloat(document.getElementById("cost_per_kwh").value);
-     result.innerHTML = parseFloat(document.getElementById("cost_per_kwh").value) * parseFloat(document.getElementById("power_consumption").value);
+        const user = await getCurrentUser();
+        if (!user) {
+            alert("You must be logged in to save calculations!");
+            window.location.href = "login.html";
+            return;
+        }
 
+        const resultValue = parseFloat(cost.value) * parseFloat(power.value);
+        total.value = resultValue.toFixed(2);
+
+        const { data, error } = await supabaseClient
+            .from("calculations")
+            .insert([{
+                user_id: user.id,
+                month: month.value,
+                power_consumption: parseFloat(power.value),
+                cost_per_kwh: parseFloat(cost.value),
+                result: resultValue
+            }])
+            .select();
+
+        if (error) console.error("Error saving calculation:", error);
+
+        addRowToTable(data[0]);
+
+        month.value = "";
+        power.value = "";
+        cost.value = "";
+    });
+
+    const clear_table = document.getElementById("clear_table");
+    clear_table.addEventListener("click", async () => {
+        const user = await getCurrentUser();
+        if (!user) return alert("You must be logged in to clear history.");
+        if (!confirm("Are you sure you want to clear all your history?")) return;
+
+        const { error } = await supabaseClient
+            .from("calculations")
+            .delete()
+            .eq("user_id", user.id);
+
+        if (error) {
+            console.error("Error clearing history:", error);
+            return alert("Failed to clear history. Try again.");
+        }
+
+        const table = document.getElementById("results_table");
+        while (table.rows.length > 1) table.deleteRow(1);
+        alert("History cleared successfully!");
+    });
+});
+
+async function loadHistory() {
+    const user = await getCurrentUser();
+    if (!user) return;
+
+    const { data, error } = await supabaseClient
+        .from("calculations")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("id", { ascending: true });
+
+    if (error) return console.error(error);
+
+    data.forEach(calc => addRowToTable(calc));
 }
+
+function addRowToTable(calc) {
+    const table = document.getElementById("results_table");
+    const row = table.insertRow(-1);
+    row.classList.add("table-row");
+
+    // Create 4 cells
+    const cellMonth = row.insertCell(0);
+    const cellPower = row.insertCell(1);
+    const cellCost = row.insertCell(2);
+    const cellResult = row.insertCell(3);
+
+    // Wrap content in sliding div
+    [cellMonth, cellPower, cellCost, cellResult].forEach((cell, i) => {
+        const content = document.createElement("div");
+        content.classList.add("row-content");
+        content.style.paddingRight = "100px"; // space for delete button
+        switch (i) {
+            case 0: content.textContent = calc.month; break;
+            case 1: content.textContent = calc.power_consumption.toFixed(2); break;
+            case 2: content.textContent = "₱ " + calc.cost_per_kwh.toFixed(2); break;
+            case 3: content.textContent = "₱ " + calc.result.toFixed(2); break;
+        }
+        cell.appendChild(content);
+    });
+
+    // DELETE button inside **first cell**
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "Delete";
+    deleteBtn.classList.add("delete-btn");
+    cellMonth.appendChild(deleteBtn);
+
+    // Click row to slide
+    row.addEventListener("click", () => {
+        row.classList.toggle("active");
+    });
+
+    // Delete functionality
+    deleteBtn.addEventListener("click", async e => {
+        e.stopPropagation();
+        const user = await getCurrentUser();
+        if (!user) return alert("Not logged in");
+
+        const { error } = await supabaseClient
+            .from("calculations")
+            .delete()
+            .eq("id", calc.id);
+
+        if (error) return console.error(error);
+
+        row.remove();
+    });
+}
+
 </script>
-
-
+</body>
 </html>
