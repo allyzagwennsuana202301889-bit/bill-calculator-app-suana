@@ -1,0 +1,81 @@
+*{
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  font-family: Comic Sans MS, Comic Sans, cursive;
+}
+
+body {
+  background-image: url('bg3.png');
+  background-repeat: no-repeat; 
+  background-size: cover; 
+  background-position: center center; 
+  background-attachment: fixed; 
+}
+
+.nav{
+ width: 80%;
+ border:hidden;
+ background:none;
+ display: flex;
+ transform: translate(200px,100px);
+}
+
+.nav h1{
+transform: translate(130px, 160px);
+display: flex;
+background:none;
+font-size: 40px;
+}
+
+
+.nav img{
+  display: flex;
+  transform: translate(-200px, -30px);
+  width: 300px;
+  height: 200px;
+}
+
+.input1 input, .input2 input{
+  background-color: white;
+  border-radius: 20px;
+  height: 50px;
+  width: 300px;
+  display: flex;
+  transform: translate(700px, 120px);
+  font-size: 20px;
+  font-family: Comic Sans MS, Comic Sans, cursive;
+  padding:0px 10px;
+  margin: 20px 0px;
+}
+
+button{
+  display: flex;
+  background-color: #1C81C9;
+  border-radius: 8px;
+  border: none;
+  height: 50px;
+  width: 200px;
+  display: flex;
+  transform: translate(750px, 60px);
+  font-size: 20px;
+  font-family: Comic Sans MS, Comic Sans, cursive;
+  color: white;
+  cursor: pointer;
+  padding: 10px 10px;
+  
+}
+
+.noline{
+  text-decoration: none;
+}
+
+.backup img{
+  width: 80px;
+  height: 80px;
+  display: flex;
+  transform: translate(30px,-350px);
+}
