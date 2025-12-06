@@ -33,15 +33,17 @@
 
     <div class="passout">
         <a href="changepass.html">Change Password</a>
-        <button onclick="handleLogout()">Log out</button>
     </div>
-</div>
 
 <button class="savebtn" id="editBtn" onclick="enableEditing()">Edit Profile</button>
 <button class="savebtn" id="saveBtn" onclick="handleProfileUpdate()" style="display:none;">Save Changes</button>
-
+</div>
 <div class="rewind">
     <a href="calculator_page.html"><img src="back2.png" alt="back" /></a>
+</div>
+
+<div class = "bye">
+ <button onclick="handleLogout()">Log out</button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -50,22 +52,22 @@
 
 
 <script>
-// Load page and enforce authentication
+// Run on page load
 document.addEventListener("DOMContentLoaded", async () => {
-    const session = await initAuth();
+    const session = await initAuth(); // enforce login
     if (session) {
-        loadUserProfile();
+        await loadUserProfile();
     }
 });
 
-// Load user profile (profiles table + auth email)
+// Load user profile
 async function loadUserProfile() {
     const session = await checkAuth();
     if (!session) return;
 
     const userId = session.user.id;
 
-    // Fetch from profiles table
+    // Fetch profile data from "profiles" table
     const { data: profile, error } = await supabaseClient
         .from("profiles")
         .select("username, address, phone")
@@ -73,17 +75,17 @@ async function loadUserProfile() {
         .single();
 
     if (error) {
-        console.error("Profile load error:", error);
+        console.error("Failed to load profile:", error);
         return;
     }
 
-    // Fill inputs
+    // Populate the form fields
     document.getElementById("profile_name").value = profile.username || "";
     document.getElementById("profile_address").value = profile.address || "";
     document.getElementById("profile_phone").value = profile.phone || "";
-
-    // Email from auth.users (NOT in profiles table)
-    document.getElementById("profile_email_edit").value = session.user.email;
+    
+    // Email comes from Auth (not in profiles table)
+    document.getElementById("profile_email_edit").value = session.user.email || "";
 }
 
 // Enable editing
@@ -92,14 +94,14 @@ function enableEditing() {
     document.getElementById("profile_address").readOnly = false;
     document.getElementById("profile_phone").readOnly = false;
 
-    // Email cannot be edited unless you explicitly allow updating Auth.email
+    // Email cannot be edited here
     document.getElementById("profile_email_edit").readOnly = true;
 
     document.getElementById("editBtn").style.display = "none";
-    document.getElementById("saveBtn").style.display = "block";
+    document.getElementById("saveBtn").style.display = "inline-block";
 }
 
-// Save updated profile
+// Save profile changes
 async function handleProfileUpdate() {
     const session = await checkAuth();
     if (!session) return alert("You must be logged in!");
@@ -110,42 +112,41 @@ async function handleProfileUpdate() {
     const address = document.getElementById("profile_address").value;
     const phone = document.getElementById("profile_phone").value;
 
-    // Update the profiles table ONLY
+    // Update the profiles table
     const { error } = await supabaseClient
         .from("profiles")
-        .update({
-            username: username,
-            address: address,
-            phone: phone
-        })
+        .update({ username, address, phone })
         .eq("id", userId);
 
     if (error) {
-        console.error("Update error:", error);
-        alert("Error updating profile.");
+        console.error("Profile update error:", error);
+        alert("Failed to save changes.");
         return;
     }
 
     alert("Profile updated successfully!");
 
-    // Lock fields again
+    // Lock fields
     document.getElementById("profile_name").readOnly = true;
     document.getElementById("profile_address").readOnly = true;
     document.getElementById("profile_phone").readOnly = true;
 
     document.getElementById("saveBtn").style.display = "none";
-    document.getElementById("editBtn").style.display = "block";
+    document.getElementById("editBtn").style.display = "inline-block";
 
-    loadUserProfile();
+    // Reload profile to reflect changes
+    await loadUserProfile();
 }
 
 // Logout
 async function handleLogout() {
-    await supabaseClient.auth.signOut();
-    window.location.href = "login.html";
+    const { error } = await supabaseClient.auth.signOut();
+    if (!error) {
+        window.location.href = "login.html";
+    }
 }
-
 </script>
+
 
 </body>
 </html>

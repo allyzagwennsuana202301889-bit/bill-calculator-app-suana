@@ -14,7 +14,6 @@
 
 <!-- SIGN UP FORM -->
 <div class="user_info">
-
     <div class="username">
         <input type="text" placeholder="Username" id="reg_name">
     </div>
@@ -38,7 +37,6 @@
     <div class="userconfirm">
         <input type="password" placeholder="Confirm Password" id="reg_confirm_password">
     </div>
-
 </div>
 
 <!-- SIGN UP BUTTON -->
@@ -57,10 +55,7 @@
 <script src="auth.js"></script>
 
 <script>
-document.addEventListener("DOMContentLoaded", async () => {
-    await redirectIfAuthenticated();
-});
-
+// Handle user registration
 async function handleRegister() {
     const username = document.getElementById("reg_name").value;
     const address = document.getElementById("reg_address").value;
@@ -85,20 +80,31 @@ async function handleRegister() {
     }
 
     try {
-        // 1. Sign up the user in Supabase Auth
-        const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+        // 1️⃣ Sign up the user
+        const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({
             email: email,
             password: password
         });
 
-        if (authError) {
-            alert("Registration failed: " + authError.message);
+        if (signUpError) {
+            alert("Registration failed: " + signUpError.message);
             return;
         }
 
-        const userId = authData.user.id;
+        // 2️⃣ Sign in immediately to create a valid session
+        const { data: signInData, error: signInError } = await supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
 
-        // 2. Create profile in "profiles" table
+        if (signInError) {
+            alert("Login after signup failed: " + signInError.message);
+            return;
+        }
+
+        const userId = signInData.user.id;
+
+        // 3️⃣ Insert the profile now that user is authenticated
         const { error: profileError } = await supabaseClient
             .from('profiles')
             .insert({
@@ -114,18 +120,11 @@ async function handleRegister() {
             return;
         }
 
-        alert("Registration successful! Check your email to verify your account.");
-        window.location.href = "login.html";
+        alert("Registration successful! You are now logged in.");
+        window.location.href = "calculator_page.html";
 
     } catch (err) {
-        alert("An error occurred: " + err.message);
-    }
-}
-
-async function redirectIfAuthenticated() {
-    const session = await checkAuth();
-    if (session) {
-        window.location.href = "calculator_page.html";
+        alert("An unexpected error occurred: " + err.message);
     }
 }
 </script>
