@@ -18,27 +18,22 @@
 </div>
 
 <div class="box">
-    <div class="info">
-        <label class="uadd">Address</label>
-        <label class="num">Phone No.</label>
-        <label class="mails">Email</label>
-
-        <div class="passout">
-            <a href="changepass.html" class="changie">Change Password</a>
-            <button class="outie" onclick="handleLogout()">Log out</button>
-        </div>
-    </div>
-</div>
-
-<div class="example">
-    <div class="fills">
+    <div class="form-row">
+        <label for="profile_address">Address:</label>
         <input type="text" id="profile_address" placeholder="Address" readonly />
     </div>
-    <div class="fill">
+    <div class="form-row">
+        <label for="profile_phone">Phone No:</label>
         <input type="text" id="profile_phone" placeholder="Phone Number" readonly />
     </div>
-    <div class="fill2">
+    <div class="form-row">
+        <label for="profile_email_edit">Email:</label>
         <input type="email" id="profile_email_edit" placeholder="Email" readonly />
+    </div>
+
+    <div class="passout">
+        <a href="changepass.html">Change Password</a>
+        <button onclick="handleLogout()">Log out</button>
     </div>
 </div>
 
@@ -53,43 +48,42 @@
 <script src="supabase-config.js"></script>
 <script src="auth.js"></script>
 
+
 <script>
+// Load page and enforce authentication
 document.addEventListener("DOMContentLoaded", async () => {
-    await initAuth();
-    await loadUserProfile();
+    const session = await initAuth();
+    if (session) {
+        loadUserProfile();
+    }
 });
 
-// Load profile
+// Load user profile (profiles table + auth email)
 async function loadUserProfile() {
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    if (!user) return;
+    const session = await checkAuth();
+    if (!session) return;
 
-    // Fetch profile from "profiles" table
-    let { data: profile, error } = await supabaseClient
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
+    const userId = session.user.id;
+
+    // Fetch from profiles table
+    const { data: profile, error } = await supabaseClient
+        .from("profiles")
+        .select("username, address, phone")
+        .eq("id", userId)
         .single();
 
-    // If profile doesn't exist, create blank one
-    if (!profile) {
-        const { data: newProfile, error: insertError } = await supabaseClient
-            .from('profiles')
-            .insert({ id: user.id, username: '', phone: '', address: '' })
-            .select()
-            .single();
-        if (insertError) {
-            console.error("Error creating profile:", insertError);
-            return;
-        }
-        profile = newProfile;
+    if (error) {
+        console.error("Profile load error:", error);
+        return;
     }
 
-    // Populate fields
+    // Fill inputs
     document.getElementById("profile_name").value = profile.username || "";
     document.getElementById("profile_address").value = profile.address || "";
     document.getElementById("profile_phone").value = profile.phone || "";
-    document.getElementById("profile_email_edit").value = user.email || "";
+
+    // Email from auth.users (NOT in profiles table)
+    document.getElementById("profile_email_edit").value = session.user.email;
 }
 
 // Enable editing
@@ -97,34 +91,39 @@ function enableEditing() {
     document.getElementById("profile_name").readOnly = false;
     document.getElementById("profile_address").readOnly = false;
     document.getElementById("profile_phone").readOnly = false;
-    document.getElementById("profile_email_edit").readOnly = false;
+
+    // Email cannot be edited unless you explicitly allow updating Auth.email
+    document.getElementById("profile_email_edit").readOnly = true;
 
     document.getElementById("editBtn").style.display = "none";
     document.getElementById("saveBtn").style.display = "block";
 }
 
-// Save changes
+// Save updated profile
 async function handleProfileUpdate() {
+    const session = await checkAuth();
+    if (!session) return alert("You must be logged in!");
+
+    const userId = session.user.id;
+
     const username = document.getElementById("profile_name").value;
-    const phone = document.getElementById("profile_phone").value;
     const address = document.getElementById("profile_address").value;
-    const email = document.getElementById("profile_email_edit").value;
+    const phone = document.getElementById("profile_phone").value;
 
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    if (!user) return alert("You must be logged in!");
+    // Update the profiles table ONLY
+    const { error } = await supabaseClient
+        .from("profiles")
+        .update({
+            username: username,
+            address: address,
+            phone: phone
+        })
+        .eq("id", userId);
 
-    // Update profiles table
-    const { error: profileError } = await supabaseClient
-        .from('profiles')
-        .update({ username, phone, address })
-        .eq('id', user.id);
-
-    if (profileError) return alert("Error updating profile: " + profileError.message);
-
-    // Update email in Auth
-    if (email !== user.email) {
-        const { error: authError } = await supabaseClient.auth.updateUser({ email });
-        if (authError) return alert("Error updating email: " + authError.message);
+    if (error) {
+        console.error("Update error:", error);
+        alert("Error updating profile.");
+        return;
     }
 
     alert("Profile updated successfully!");
@@ -133,19 +132,19 @@ async function handleProfileUpdate() {
     document.getElementById("profile_name").readOnly = true;
     document.getElementById("profile_address").readOnly = true;
     document.getElementById("profile_phone").readOnly = true;
-    document.getElementById("profile_email_edit").readOnly = true;
 
     document.getElementById("saveBtn").style.display = "none";
     document.getElementById("editBtn").style.display = "block";
 
-    await loadUserProfile();
+    loadUserProfile();
 }
 
 // Logout
 async function handleLogout() {
     await supabaseClient.auth.signOut();
-    window.location.href = "index.html";
+    window.location.href = "login.html";
 }
+
 </script>
 
 </body>
