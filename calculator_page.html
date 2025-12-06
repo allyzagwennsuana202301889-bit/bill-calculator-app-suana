@@ -145,54 +145,59 @@ function addRowToTable(calc) {
     const row = table.insertRow(-1);
     row.classList.add("table-row");
 
-    // Create 4 cells
-    const cellMonth = row.insertCell(0);
-    const cellPower = row.insertCell(1);
-    const cellCost = row.insertCell(2);
-    const cellResult = row.insertCell(3);
+    const keys = ["month", "power_consumption", "cost_per_kwh", "result"];
+    keys.forEach((key, i) => {
+        const cell = row.insertCell(i);
 
-    // Wrap content in sliding div
-    [cellMonth, cellPower, cellCost, cellResult].forEach((cell, i) => {
+        // Create wrapper inside the cell
+        const wrapper = document.createElement("div");
+        wrapper.classList.add("row-content-wrapper");
+
+        // Row content
         const content = document.createElement("div");
         content.classList.add("row-content");
-        content.style.paddingRight = "100px"; // space for delete button
-        switch (i) {
-            case 0: content.textContent = calc.month; break;
-            case 1: content.textContent = calc.power_consumption.toFixed(2); break;
-            case 2: content.textContent = "₱ " + calc.cost_per_kwh.toFixed(2); break;
-            case 3: content.textContent = "₱ " + calc.result.toFixed(2); break;
+        content.textContent = i === 0 ? calc.month
+                            : i === 1 ? calc.power_consumption.toFixed(2)
+                            : i === 2 ? "₱ " + calc.cost_per_kwh.toFixed(2)
+                            : "₱ " + calc.result.toFixed(2);
+
+        wrapper.appendChild(content);
+
+        // Add delete button only in first cell
+        if (i === 0) {
+            const deleteBtn = document.createElement("button");
+            deleteBtn.classList.add("delete-btn");
+            deleteBtn.textContent = "Delete";
+            wrapper.appendChild(deleteBtn);
+
+            // Delete functionality
+            deleteBtn.addEventListener("click", async e => {
+                e.stopPropagation();
+                const user = await getCurrentUser();
+                if (!user) return alert("Not logged in");
+
+                const { error } = await supabaseClient
+                    .from("calculations")
+                    .delete()
+                    .eq("id", calc.id);
+                if (error) return console.error(error);
+
+                row.remove();
+            });
         }
-        cell.appendChild(content);
+
+        cell.appendChild(wrapper);
     });
 
-    // DELETE button inside **first cell**
-    const deleteBtn = document.createElement("button");
-    deleteBtn.textContent = "Delete";
-    deleteBtn.classList.add("delete-btn");
-    cellMonth.appendChild(deleteBtn);
-
-    // Click row to slide
+    // Toggle active class on row click
     row.addEventListener("click", () => {
         row.classList.toggle("active");
     });
-
-    // Delete functionality
-    deleteBtn.addEventListener("click", async e => {
-        e.stopPropagation();
-        const user = await getCurrentUser();
-        if (!user) return alert("Not logged in");
-
-        const { error } = await supabaseClient
-            .from("calculations")
-            .delete()
-            .eq("id", calc.id);
-
-        if (error) return console.error(error);
-
-        row.remove();
-    });
 }
+
+
 
 </script>
 </body>
 </html>
+

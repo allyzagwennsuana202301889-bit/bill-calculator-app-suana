@@ -4,12 +4,11 @@
     <title>Electricity Bill Calculator - Sign Up</title>
     <link rel="stylesheet" href="signingin.css">
 </head>
-
 <body>
 
 <!-- NAV BAR -->
 <div class="nav">
-    <h1>Signing In</h1>
+    <h1>Sign Up</h1>
     <img src="callogo1.png" alt="logo">
 </div>
 
@@ -17,27 +16,27 @@
 <div class="user_info">
 
     <div class="username">
-        <input type="text" placeholder="name" id="reg_name">
+        <input type="text" placeholder="Username" id="reg_name">
     </div>
 
     <div class="useradd"> 
-        <input type="text" placeholder="address" id="reg_address">
+        <input type="text" placeholder="Address" id="reg_address">
     </div>
 
     <div class="usernum">
-        <input type="text" placeholder="phone" id="reg_phone">
+        <input type="text" placeholder="Phone" id="reg_phone">
     </div>
 
     <div class="usermail">
-        <input type="text" placeholder="email" id="reg_email">
+        <input type="text" placeholder="Email" id="reg_email">
     </div>
 
     <div class="userpass">
-        <input type="password" placeholder="password" id="reg_password">
+        <input type="password" placeholder="Password" id="reg_password">
     </div>
 
     <div class="userconfirm">
-        <input type="password" placeholder="confirm password" id="reg_confirm_password">
+        <input type="password" placeholder="Confirm Password" id="reg_confirm_password">
     </div>
 
 </div>
@@ -58,63 +57,77 @@
 <script src="auth.js"></script>
 
 <script>
+document.addEventListener("DOMContentLoaded", async () => {
+    await redirectIfAuthenticated();
+});
 
-    document.addEventListener("DOMContentLoaded", async () => {
-        await redirectIfAuthenticated();
-    });
+async function handleRegister() {
+    const username = document.getElementById("reg_name").value;
+    const address = document.getElementById("reg_address").value;
+    const phone = document.getElementById("reg_phone").value;
+    const email = document.getElementById("reg_email").value;
+    const password = document.getElementById("reg_password").value;
+    const confirmPassword = document.getElementById("reg_confirm_password").value;
 
-    async function handleRegister() {
-        const name = document.getElementById("reg_name").value;
-        const email = document.getElementById("reg_email").value;
-        const password = document.getElementById("reg_password").value;
-        const confirmPassword = document.getElementById("reg_confirm_password").value;
+    if (!username || !email || !password || !confirmPassword) {
+        alert("Please fill in all fields!");
+        return;
+    }
 
-        if (!name || !email || !password || !confirmPassword) {
-            alert("Please fill in all fields!");
+    if (password !== confirmPassword) {
+        alert("Passwords do not match!");
+        return;
+    }
+
+    if (password.length < 6) {
+        alert("Password must be at least 6 characters long!");
+        return;
+    }
+
+    try {
+        // 1. Sign up the user in Supabase Auth
+        const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+            email: email,
+            password: password
+        });
+
+        if (authError) {
+            alert("Registration failed: " + authError.message);
             return;
         }
 
-        if (password !== confirmPassword) {
-            alert("Passwords do not match!");
-            return;
-        }
+        const userId = authData.user.id;
 
-        if (password.length < 6) {
-            alert("Password must be at least 6 characters long!");
-            return;
-        }
-
-        try {
-            const { data, error } = await supabaseClient.auth.signUp({
-                email: email,
-                password: password,
-                options: {
-                    data: {
-                        full_name: name
-                    }
-                }
+        // 2. Create profile in "profiles" table
+        const { error: profileError } = await supabaseClient
+            .from('profiles')
+            .insert({
+                id: userId,
+                username: username,
+                address: address,
+                phone: phone
             });
 
-            if (error) {
-                alert("Registration failed: " + error.message);
-                return;
-            }
-
-            alert("Registration successful! Check your email to verify your account.");
-            window.location.href = "login.html";
-
-        } catch (err) {
-            alert("An error occurred: " + err.message);
+        if (profileError) {
+            console.error("Profile creation error:", profileError);
+            alert("Registration succeeded but failed to create profile.");
+            return;
         }
-    }
 
-    async function redirectIfAuthenticated() {
-        const session = await checkAuth();
-        if (session) {
-            window.location.href = "calculator_page.html";
-        }
-    }
+        alert("Registration successful! Check your email to verify your account.");
+        window.location.href = "login.html";
 
+    } catch (err) {
+        alert("An error occurred: " + err.message);
+    }
+}
+
+async function redirectIfAuthenticated() {
+    const session = await checkAuth();
+    if (session) {
+        window.location.href = "calculator_page.html";
+    }
+}
 </script>
 
 </body>

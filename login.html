@@ -1,85 +1,111 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Electricity Bill Calculator - Login</title>
-    <link rel="stylesheet" href="loging.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Electricity Bill Calculator - Login</title>
+<link rel="stylesheet" href="loging.css" />
 </head>
-
 <body>
-    <!-- Navigation -->
-    <div class="nav">
-        <h1>Welcome!</h1>
-        <img src="callogo1.png" alt="logo" />
-    </div>
 
-    <!-- Input Fields -->
-    <div class="input1">
-        <input type="text" placeholder="Email" id="email" />
-    </div>
+<div class="nav">
+    <h1>Welcome!</h1>
+    <img src="callogo1.png" alt="logo" />
+</div>
 
-    <div class="input2">
-        <input type="password" placeholder="Password" id="password" />
-    </div>
+<div class="input1">
+    <input type="text" placeholder="Email" id="email" />
+</div>
+<div class="input2">
+    <input type="password" placeholder="Password" id="password" />
+</div>
 
-    <!-- Login Button -->
-    <button type="button" onclick="handleLogin()">Log In</button>
+<button type="button" id="loginBtn">Log In</button>
 
-    <!-- Back Button -->
-    <div class="rwd">
-        <a href="index.html"><img src="back2.png" alt="back" /></a>
-    </div>
+<div class="rwd">
+    <a href="index.html"><img src="back2.png" alt="back" /></a>
+</div>
 
-    <!-- Supabase Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", async () => {
-            await redirectIfAuthenticated();
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+    await redirectIfAuthenticated();
+});
+
+async function handleLogin() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    if (!email || !password) {
+        alert("Please fill in all fields!");
+        return;
+    }
+
+    const loginBtn = document.getElementById("loginBtn");
+    loginBtn.textContent = "Logging in...";
+    loginBtn.disabled = true;
+
+    try {
+        // Sign in with email & password
+        const { data: loginData, error: loginError } = await supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: password
         });
 
-        async function handleLogin() {
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
+        if (loginError) {
+            alert("Login failed: " + loginError.message);
+            loginBtn.textContent = "Log In";
+            loginBtn.disabled = false;
+            return;
+        }
 
-            if (!email || !password) {
-                alert("Please fill in all fields!");
-                return;
-            }
+        const user = loginData.user;
 
-            // Disable button during login
-            const loginBtn = document.querySelector('button');
-            loginBtn.textContent = "Logging in...";
-            loginBtn.disabled = true;
+        // Check if profile exists
+        const { data: profile, error: profileError } = await supabaseClient
+            .from("profiles")
+            .select("*")
+            .eq("id", user.id)
+            .single();
 
-            try {
-                const { data, error } = await supabaseClient.auth.signInWithPassword({
-                    email: email,
-                    password: password,
+        // If profile doesn't exist, create it
+        if (!profile) {
+            const { error: insertError } = await supabaseClient
+                .from("profiles")
+                .insert({
+                    id: user.id,
+                    username: "",
+                    address: "",
+                    phone: ""
                 });
 
-                if (error) {
-                    alert("Login failed: " + error.message);
-                    loginBtn.textContent = "Log In";
-                    loginBtn.disabled = false;
-                    return;
-                }
-
-                // Redirect on success
-                window.location.href = "calculator_page.html";
-            } catch (error) {
-                alert("An error occurred: " + error.message);
+            if (insertError) {
+                alert("Failed to create profile: " + insertError.message);
                 loginBtn.textContent = "Log In";
                 loginBtn.disabled = false;
+                return;
             }
         }
 
-        async function redirectIfAuthenticated() {
-            const session = await checkAuth();
-            if (session) window.location.href = "calculator_page.html";
-        }
-    </script>
+        // Redirect to calculator/profile page
+        window.location.href = "calculator_page.html";
+
+    } catch (error) {
+        alert("An error occurred: " + error.message);
+        loginBtn.textContent = "Log In";
+        loginBtn.disabled = false;
+    }
+}
+
+// Redirect if already authenticated
+async function redirectIfAuthenticated() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session) window.location.href = "calculator_page.html";
+}
+
+document.getElementById("loginBtn").addEventListener("click", handleLogin);
+</script>
 </body>
 </html>

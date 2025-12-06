@@ -1,153 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Electricity Bill Calculator - Profile</title>
-    <link rel="stylesheet" href="pfp.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Electricity Bill Calculator - Profile</title>
+<link rel="stylesheet" href="pfp.css" />
 </head>
-
 <body>
-    <!-- Navigation -->
-    <div class="nav">
-        <div class="pfpname">
-            <!-- Editable Username Field -->
-            <input type="text" id="profile_name" placeholder="Username" />
-        </div>
-        <div class="udash">
-            <img src="clean logo1.png" alt="pfp" />
+
+<div class="nav">
+    <div class="pfpname">
+        <input type="text" id="profile_name" placeholder="Username" readonly />
+    </div>
+    <div class="udash">
+        <img src="clean logo1.png" alt="pfp" />
+    </div>
+</div>
+
+<div class="box">
+    <div class="info">
+        <label class="uadd">Address</label>
+        <label class="num">Phone No.</label>
+        <label class="mails">Email</label>
+
+        <div class="passout">
+            <a href="changepass.html" class="changie">Change Password</a>
+            <button class="outie" onclick="handleLogout()">Log out</button>
         </div>
     </div>
+</div>
 
-    <!-- Profile Info Labels -->
-    <div class="box">
-        <div class="info">
-            <label class="uname">Username</label>
-            <label class="uadd">Address</label>
-            <label class="num">Phone No.</label>
-            <label class="mails">Email</label>
-
-            <div class="passout">
-                <a href="changepass.html" class="changie">Change Password</a>
-                <button class="outie" onclick="handleLogout()">Log out</button>
-            </div>
-        </div>
+<div class="example">
+    <div class="fills">
+        <input type="text" id="profile_address" placeholder="Address" readonly />
     </div>
-
-    <!-- Editable Fields -->
-    <div class="example">
-        <!-- Editable Username -->
-        <div class="fillname">
-            <input type="text" id="profile_name_edit" placeholder="Username" />
-        </div>
-
-        <!-- Address -->
-        <div class="fills">
-            <input type="text" id="profile_address" placeholder="Address" />
-        </div>
-
-        <!-- Phone -->
-        <div class="fill">
-            <input type="text" id="profile_phone" placeholder="Phone Number" />
-        </div>
-
-        <!-- Email -->
-        <div class="fill2">
-            <input type="email" id="profile_email_edit" placeholder="Email" />
-        </div>
+    <div class="fill">
+        <input type="text" id="profile_phone" placeholder="Phone Number" readonly />
     </div>
-
-    <button class="savebtn" onclick="handleProfileUpdate()">Save Changes</button>
-
-    <!-- Back Button -->
-    <div class="rewind">
-        <a href="calculator_page.html"><img src="back2.png" alt="back" /></a>
+    <div class="fill2">
+        <input type="email" id="profile_email_edit" placeholder="Email" readonly />
     </div>
+</div>
 
-    <!-- Supabase Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase-config.js"></script>
-    <script src="auth.js"></script>
+<button class="savebtn" id="editBtn" onclick="enableEditing()">Edit Profile</button>
+<button class="savebtn" id="saveBtn" onclick="handleProfileUpdate()" style="display:none;">Save Changes</button>
 
-    <script>
-        // Load user profile on page load
-        document.addEventListener("DOMContentLoaded", async () => {
-            const session = await initAuth();
-            if (session) {
-                await loadUserProfile();
-            }
-        });
+<div class="rewind">
+    <a href="calculator_page.html"><img src="back2.png" alt="back" /></a>
+</div>
 
-        async function loadUserProfile() {
-            const user = await getCurrentUser();
-            if (user) {
-                // Username
-                if (user.user_metadata?.username) {
-                    document.getElementById("profile_name").value = user.user_metadata.username;
-                    document.getElementById("profile_name_edit").value = user.user_metadata.username;
-                }
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="auth.js"></script>
 
-                // Address
-                if (user.user_metadata?.address) {
-                    document.getElementById("profile_address").value = user.user_metadata.address;
-                }
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+    await initAuth();
+    await loadUserProfile();
+});
 
-                // Phone
-                if (user.user_metadata?.phone) {
-                    document.getElementById("profile_phone").value = user.user_metadata.phone;
-                }
+// Load profile
+async function loadUserProfile() {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return;
 
-                // Email
-                if (user.email) {
-                    document.getElementById("profile_email_edit").value = user.email;
-                }
-            }
+    // Fetch profile from "profiles" table
+    let { data: profile, error } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+    // If profile doesn't exist, create blank one
+    if (!profile) {
+        const { data: newProfile, error: insertError } = await supabaseClient
+            .from('profiles')
+            .insert({ id: user.id, username: '', phone: '', address: '' })
+            .select()
+            .single();
+        if (insertError) {
+            console.error("Error creating profile:", insertError);
+            return;
         }
+        profile = newProfile;
+    }
 
-        async function handleProfileUpdate() {
-            const username = document.getElementById("profile_name_edit").value;
-            const phone = document.getElementById("profile_phone").value;
-            const address = document.getElementById("profile_address").value;
-            const email = document.getElementById("profile_email_edit").value;
+    // Populate fields
+    document.getElementById("profile_name").value = profile.username || "";
+    document.getElementById("profile_address").value = profile.address || "";
+    document.getElementById("profile_phone").value = profile.phone || "";
+    document.getElementById("profile_email_edit").value = user.email || "";
+}
 
-            const user = await getCurrentUser();
-            if (!user) {
-                alert("You must be logged in to update your profile!");
-                return;
-            }
+// Enable editing
+function enableEditing() {
+    document.getElementById("profile_name").readOnly = false;
+    document.getElementById("profile_address").readOnly = false;
+    document.getElementById("profile_phone").readOnly = false;
+    document.getElementById("profile_email_edit").readOnly = false;
 
-            try {
-                const { error } = await supabaseClient.auth.updateUser({
-                    email: email, // update email
-                    data: {
-                        username: username,
-                        phone: phone,
-                        address: address,
-                    },
-                });
+    document.getElementById("editBtn").style.display = "none";
+    document.getElementById("saveBtn").style.display = "block";
+}
 
-                if (error) {
-                    alert("Error updating profile: " + error.message);
-                    return;
-                }
+// Save changes
+async function handleProfileUpdate() {
+    const username = document.getElementById("profile_name").value;
+    const phone = document.getElementById("profile_phone").value;
+    const address = document.getElementById("profile_address").value;
+    const email = document.getElementById("profile_email_edit").value;
 
-                // Update nav username instantly
-                document.getElementById("profile_name").value = username;
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return alert("You must be logged in!");
 
-                alert("Profile updated successfully!");
-            } catch (error) {
-                alert("Error updating profile: " + error.message);
-            }
-        }
+    // Update profiles table
+    const { error: profileError } = await supabaseClient
+        .from('profiles')
+        .update({ username, phone, address })
+        .eq('id', user.id);
 
-        async function handleLogout() {
-            const success = await signOut();
-            if (success) {
-                window.location.href = "login.html";
-            } else {
-                alert("Error logging out. Please try again.");
-            }
-        }
-    </script>
+    if (profileError) return alert("Error updating profile: " + profileError.message);
+
+    // Update email in Auth
+    if (email !== user.email) {
+        const { error: authError } = await supabaseClient.auth.updateUser({ email });
+        if (authError) return alert("Error updating email: " + authError.message);
+    }
+
+    alert("Profile updated successfully!");
+
+    // Lock fields again
+    document.getElementById("profile_name").readOnly = true;
+    document.getElementById("profile_address").readOnly = true;
+    document.getElementById("profile_phone").readOnly = true;
+    document.getElementById("profile_email_edit").readOnly = true;
+
+    document.getElementById("saveBtn").style.display = "none";
+    document.getElementById("editBtn").style.display = "block";
+
+    await loadUserProfile();
+}
+
+// Logout
+async function handleLogout() {
+    await supabaseClient.auth.signOut();
+    window.location.href = "index.html";
+}
+</script>
+
 </body>
 </html>
